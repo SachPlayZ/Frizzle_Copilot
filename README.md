@@ -1,6 +1,6 @@
-# CopilotKit <> LangGraph Starter
+# Frizzle – CopilotKit + LangGraph App
 
-This is a starter template for building AI agents using [LangGraph](https://www.langchain.com/langgraph) and [CopilotKit](https://copilotkit.ai). It provides a modern Next.js application with an integrated LangGraph agent to be built on top of.
+Frizzle is a Next.js app that pairs a LangGraph agent (Python) with a CopilotKit-powered UI for collaborative planning. The UI renders structured JSON (itineraries, checklists) as rich components, and the agent uses LangGraph with Google Gemini tools.
 
 ## Prerequisites
 
@@ -12,8 +12,44 @@ This is a starter template for building AI agents using [LangGraph](https://www.
   - [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
   - [bun](https://bun.sh/)
 - Google Gemini API Key (for the LangGraph agent)
+- Google OAuth credentials (for NextAuth)
 
 > **Note:** This repository ignores lock files (package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb) to avoid conflicts between different package managers. Each developer should generate their own lock file using their preferred package manager. After that, make sure to delete it from the .gitignore.
+
+## Environment Variables
+
+Create a `.env.local` in the project root for the web app and an `agent/.env` for the agent.
+
+Web (.env.local):
+
+```bash
+# NextAuth / Google OAuth
+GOOGLE_CLIENT_ID=your-google-oauth-client-id
+GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-random-secret
+
+# Optional: Prisma database (if you later switch providers)
+DATABASE_URL=file:./dev.db
+
+# Socket path configuration (defaults OK)
+# NEXT_PUBLIC_SOCKET_PATH=/api/socket_io
+```
+
+Agent (agent/.env):
+
+```bash
+# Google Gemini (LangGraph agent)
+GOOGLE_API_KEY=your-google-api-key-here
+# or GEMINI_API_KEY=your-google-api-key-here
+
+# Optional model override
+# GEMINI_MODEL=gemini-2.5-flash
+# MODEL_NAME=gemini-2.5-flash
+
+# Optional: OpenTripMap for real activities
+# OPENTRIPMAP_API_KEY=your-opentripmap-key
+```
 
 ## Getting Started
 
@@ -33,7 +69,7 @@ yarn install
 bun install
 ```
 
-> **Note:** Installing the package dependencies will also install the agent's python dependencies via the `install:agent` script.
+> Note: Installing dependencies also installs the agent's Python deps via `install:agent`.
 
 2. Configure Gemini:
 
@@ -67,7 +103,7 @@ yarn dev
 bun run dev
 ```
 
-This will start both the UI and agent servers concurrently.
+This starts both UI and agent concurrently.
 
 ## Available Scripts
 
@@ -82,7 +118,23 @@ The following scripts can also be run using your preferred package manager:
 - `lint` - Runs ESLint for code linting
 - `install:agent` - Installs Python dependencies for the agent
 
-## Documentation
+Example using pnpm:
+
+```bash
+pnpm dev         # run everything
+pnpm dev:ui      # UI only (http://localhost:3000)
+pnpm dev:agent   # Agent only (http://localhost:8123 or configured)
+pnpm build && pnpm start
+```
+
+## CopilotKit & LangGraph
+
+This app uses:
+
+- CopilotKit React UI: the `CopilotSidebar` and actions (`useCopilotAction`) in `src/app/page.tsx` to send/receive structured updates.
+- CopilotKit Core: the `useCoAgent` state shares the document content with the agent.
+- LangGraph (Python): orchestrates the agent workflow in `agent/agent.py` with a tool-enabled chat node.
+- Tools: custom tools like `create_itinerary_template`, `add_planning_section`, etc., returning fenced JSON blocks (`json itinerary / `json checklist) for rich rendering in the UI.
 
 The main UI component is in `src/app/page.tsx`. You can:
 
@@ -90,12 +142,21 @@ The main UI component is in `src/app/page.tsx`. You can:
 - Add new frontend actions
 - Customize the CopilotKit sidebar appearance
 
+The agent lives in `agent/agent.py`. It binds Gemini and tools, builds a graph with `StateGraph`, and instructs the LLM to call tools that emit JSON fences for front-end rendering.
+
 ## 📚 Documentation
 
 - [LangGraph Documentation](https://langchain-ai.github.io/langgraph/) - Learn more about LangGraph and its features
 - [CopilotKit Documentation](https://docs.copilotkit.ai) - Explore CopilotKit's capabilities
 - [Next.js Documentation](https://nextjs.org/docs) - Learn about Next.js features and API
-- [YFinance Documentation](https://pypi.org/project/yfinance/) - Financial data tools
+
+## Troubleshooting
+
+### Common env issues
+
+- 401 on sign-in: verify `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`.
+- Agent errors: verify `GOOGLE_API_KEY`/`GEMINI_API_KEY` and that the agent server is running.
+- No rich rendering: ensure the agent outputs fenced JSON blocks and the UI uses `components={MarkdownComponents}` in the markdown renderer.
 
 ## Contributing
 

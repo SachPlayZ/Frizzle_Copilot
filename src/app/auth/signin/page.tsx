@@ -31,12 +31,12 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         {/* Logo and Title */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-full">
+            <div className="bg-linear-to-r from-blue-500 to-purple-600 p-3 rounded-full">
               <Plane className="h-8 w-8 text-white" />
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function SignIn() {
           <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">
@@ -104,6 +104,18 @@ export default function SignIn() {
           <p className="text-xs text-gray-500 text-center">
             By signing in, you agree to our Terms of Service and Privacy Policy
           </p>
+        </div>
+
+        {/* Made with CopilotKit */}
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-xs uppercase tracking-wider text-gray-500">
+            Made with CopilotKit
+          </span>
+          <img
+            src="/copilotkitlogo.png"
+            alt="CopilotKit"
+            className="h-6 w-auto"
+          />
         </div>
       </div>
     </div>
