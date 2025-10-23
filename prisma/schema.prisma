@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mongodb"
+    url      = env("DATABASE_URL")
+}
+
+// NextAuth.js required models
+model Account {
+    id                String  @id @default(auto()) @map("_id") @db.ObjectId
+    userId            String  @db.ObjectId
+    type              String
+    provider          String
+    providerAccountId String
+    refresh_token     String?
+    access_token      String?
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String?
+    session_state     String?
+
+    user User @relation(fields: [userId], references: [id])
+
+    @@unique([provider, providerAccountId])
+}
+
+model Session {
+    id           String   @id @default(auto()) @map("_id") @db.ObjectId
+    sessionToken String   @unique
+    userId       String   @db.ObjectId
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id])
+}
+
+model User {
+    id            String    @id @default(auto()) @map("_id") @db.ObjectId
+    name          String?
+    email         String?   @unique
+    emailVerified DateTime?
+    image         String?
+    accounts      Account[]
+    sessions      Session[]
+
+    // Travel Planner specific fields
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    ownedGroups  Group[]       @relation("GroupOwner")
+    groupMembers GroupMember[]
+    archives     Archive[]
+    chatMessages ChatMessage[]
+}
+
+model VerificationToken {
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    identifier String
+    token      String   @unique
+    expires    DateTime
+
+    @@unique([identifier, token])
+}
+
+// Travel Planner specific models
+model Group {
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
+    code        String   @unique // 6-character shareable code
+    name        String
+    description String?
+    ownerId     String   @db.ObjectId
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    // Document content
+    content    String  @default("") // Markdown content
+    isArchived Boolean @default(false)
+
+    // Relations
+    owner        User          @relation("GroupOwner", fields: [ownerId], references: [id])
+    members      GroupMember[]
+    archive      Archive?
+    chatMessages ChatMessage[]
+}
+
+model GroupMember {
+    id       String   @id @default(auto()) @map("_id") @db.ObjectId
+    groupId  String   @db.ObjectId
+    userId   String   @db.ObjectId
+    joinedAt DateTime @default(now())
+    isReady  Boolean  @default(false) // For approval system
+
+    // Relations
+    group Group @relation(fields: [groupId], references: [id])
+    user  User  @relation(fields: [userId], references: [id])
+
+    @@unique([groupId, userId])
+}
+
+model Archive {
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
+    groupId     String   @unique @db.ObjectId
+    content     String // Final markdown content
+    name        String // Archive name
+    createdById String   @db.ObjectId
+    createdAt   DateTime @default(now())
+
+    // Relations
+    group     Group @relation(fields: [groupId], references: [id])
+    createdBy User  @relation(fields: [createdById], references: [id])
+}
+
+// Realtime group chat messages
+model ChatMessage {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    groupId   String   @db.ObjectId
+    userId    String   @db.ObjectId
+    content   String
+    createdAt DateTime @default(now())
+
+    // Relations
+    group Group @relation(fields: [groupId], references: [id])
+    user  User  @relation(fields: [userId], references: [id])
+
+    @@index([groupId, createdAt])
+}
